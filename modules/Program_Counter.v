@@ -5,7 +5,7 @@ module Program_Counter
     input wire load, // Load signal to update the program counter
     input wire PCSrc, // Program Counter Select signal
     input wire [31:0] ImmExt, // Immediate value for branch instructions
-    output wire [31:0] PC, // Next instruction address
+    output reg [31:0] PC // Next instruction address
     
 );
 
@@ -24,6 +24,5 @@ assign pc = (PCSrc) ? pc_branch : pc_next_inst; // Select between next instructi
             PC <= pc; // Load the new instruction address
         end
     end
-);
 
 endmodule
