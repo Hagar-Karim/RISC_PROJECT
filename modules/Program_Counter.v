@@ -21,7 +21,7 @@ assign pc = (PCSrc) ? pc_branch : pc_next_inst; // Select between next instructi
         if (areset) begin
             pc_out <= 32'b0; // Reset the program counter to zero
         end else if (load) begin
-            pc_out <= pc_in; // Load the new instruction address
+            PC <= pc; // Load the new instruction address
         end
     end
 );
