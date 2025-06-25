@@ -1,6 +1,6 @@
 module Control_Unit ( 
     input  wire [6:0] opcode, 
-    input  wire [6:0] func7, 
+    input  wire func7, 
     input  wire [2:0] func3, 
     input  wire Zero_Flag, 
     input  wire Sign_Flag,

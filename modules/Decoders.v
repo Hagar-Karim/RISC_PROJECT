@@ -89,13 +89,14 @@ always @(*) begin
 
 module ALU_Decoder 
 (
-    input wire [6:0] opcode , func7,
+    input wire [6:0] opcode ,
+    input wire func7,
     input wire [1:0] ALUOP,
     input wire [2:0] func3,
     output reg [2:0] ALUControl
 );
 
-wire [1:0] op_func7 = {opcode[5] , func7[5]};
+wire [1:0] op_func7 = {opcode[5] , func7}; // Concatenate opcode[5] and func7
 
 always@ (*) begin
     case (ALUOP)
