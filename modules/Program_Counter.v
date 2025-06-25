@@ -18,7 +18,7 @@ assign pc = (PCSrc) ? pc_branch : pc_next_inst; // Select between next instructi
 
     // Update the program counter on the rising edge of the clock
     always @(posedge clk or posedge areset) begin
-        if (areset) begin
+        if (!areset) begin
             PC <= 32'b0; // Reset the program counter to zero
         end else if (load) begin
             PC <= pc; // Load the new instruction address

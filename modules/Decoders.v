@@ -89,82 +89,61 @@ always @(*) begin
 
 module ALU_Decoder 
 (
- input wire [6:0] opcode , func7,
- input wire [1:0] ALUOP,
- input wire [2:0] func3,
- output reg [2:0] ALUControl
-
+    input wire [6:0] opcode , func7,
+    input wire [1:0] ALUOP,
+    input wire [2:0] func3,
+    output reg [2:0] ALUControl
 );
 
 wire [1:0] op_func7 = {opcode[5] , func7[5]};
 
-always@ (*)
-begin
-case (ALUOP)
-2'b00 : ALUControl = 3'b000; //lw, sw
-
-2'b01 : 
-begin
-if (func3 == 3'b000 || func3 == 3'b001 || func3 == 3'b100) // beq, bnq, blt
- ALUControl = 3'b010;
- else
- ALUControl = 3'b000;
-end
-
-2'b10:
-begin
-case (func3)
-3'b000 : 
-begin
-if (op_func7 == 2'b00 || op_func7 == 2'b01 || op_func7 == 2'b10)
-ALUControl = 3'b000;
-else 
-ALUControl = 3'b010;
-end 
-
-3'b001 : ALUControl = 3'b001;
-
-3'b100 : ALUControl = 3'b100;
-
-3'b101 : ALUControl = 3'b101;
-
-3'b110 : ALUControl = 3'b110;
-
-3'b111 : ALUControl = 3'b111;
-
-default : ALUControl = 3'b000;
-endcase
-end
-
-default : ALUControl = 3'b000;
-endcase
+always@ (*) begin
+    case (ALUOP)
+        2'b00 : ALUControl = 3'b000; //lw, sw
+        2'b01 : begin
+            if (func3 == 3'b000 || func3 == 3'b001 || func3 == 3'b100) // beq, bnq, blt
+                ALUControl = 3'b010;
+            else ALUControl = 3'b000;
+        end
+        2'b10: begin
+            case (func3)
+                3'b000 : begin
+                    if (op_func7 == 2'b00 || op_func7 == 2'b01 || op_func7 == 2'b10)
+                        ALUControl = 3'b000;
+                    else 
+                        ALUControl = 3'b010;
+                end 
+                3'b001 : ALUControl = 3'b001;
+                3'b100 : ALUControl = 3'b100;
+                3'b101 : ALUControl = 3'b101;
+                3'b110 : ALUControl = 3'b110;
+                3'b111 : ALUControl = 3'b111;
+                default : ALUControl = 3'b000;
+            endcase
+        end
+        default : ALUControl = 3'b000;
+    endcase
 end //always end
 endmodule
 
 module Branch_Logic
-
-(  input [2:0] func3,
-   input Zero_Flag, Sign_Flag, Branch, 
-   output reg PCSrc
+(  
+    input [2:0] func3,
+    input Zero_Flag, Sign_Flag, Branch, 
+    output reg PCSrc
 );
 
 localparam beq = 3'b000,
            bne = 3'b001,
            blt = 3'b010;
 
-always@ (*)
-begin
-case (func3)
-
-beq : PCSrc = Zero_Flag & Branch;
-
-bne : PCSrc = Branch & ~Zero_Flag;
- 
-blt : PCSrc = Branch & Sign_Flag;
-
-default : PCSrc = 0;
-
-endcase
+always@ (*) begin
+    case (func3)
+        beq : PCSrc = Branch & Zero_Flag ;
+        bne : PCSrc = Branch & ~Zero_Flag;
+        blt : PCSrc = Branch & Sign_Flag;
+        default : PCSrc = 0;
+    endcase
 end
 endmodule
         

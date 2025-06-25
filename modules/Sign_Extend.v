@@ -1,6 +1,6 @@
 module Sign_Extend
 (
-    input wire [31:0] Inst, // 32-bit instruction input
+    input wire [31:7] Inst, // 32-bit instruction input
     input wire [1:0] ImmSrc, // Sign extension control signal
     output reg [31:0] ImmExt // 32-bit extended immediate value
 );
