@@ -1,91 +1,47 @@
-module Control_Unit
-(
-    input [6:0] opcode, // Opcode input
-    output reg [1:0] ALUOp, // ALU operation code
-    output reg Branch, // Branch control signal
-    output reg ResultSrc, // Result source select
-    output reg MemWrite, // Memory write enable
-    output reg ALUSrc, // ALU source select
-    output reg [1:0] ImmSrc, // Immediate source select
-    output reg RegWrite // Register write enable
+module Control_Unit ( input  wire [6:0] opcode, input  wire [6:0] func7, input  wire [2:0] func3, input  wire       Zero_Flag, input  wire       Sign_Flag,
+
+output wire [2:0] ALUControl,
+output wire       RegWrite,
+output wire       MemWrite,
+output wire       Branch,
+output wire       ALUSrc,
+output wire       ResultSrc,
+output wire [1:0] ImmSrc,
+output wire       PCSrc
+
 );
-localparam loadWord = 7'b0000011; // Load Word instruction
-localparam storeWord = 7'b0100011; // Store Word instruction
-localparam Rtype = 7'b0110011; // R-type instruction
-localparam Itype = 7'b0010011; // I-type instruction
-localparam branch = 7'b1100011; // Branch instruction
 
-always @(*) begin
-    // Default values
-    ALUOp = 2'b00; 
-    Branch = 0;
-    ResultSrc = 0; 
-    MemWrite = 0;
-    ALUSrc = 0; 
-    ImmSrc = 2'b00;
-    RegWrite = 0;   
+// Wires to connect modules
+wire [1:0] ALUOp_internal;
 
-    case (opcode)
-        loadWord: begin
-            ALUOp = 2'b00; 
-            ResultSrc = 1;
-            ALUSrc = 1;
-            ImmSrc = 2'b00; 
-            RegWrite = 1;
-            MemWrite = 0;
-            Branch = 0; 
-        end
-        
-        storeWord: begin
-            ALUOp = 2'b00; // ALU operation for store
-            Branch = 0; // No branch for store
-            MemWrite = 1; // Enable memory write
-            ALUSrc = 1; // Use immediate value for ALU operation
-            ImmSrc = 2'b01;
-            RegWrite = 0; // No register write for store
-        end
-        
-        Rtype: begin
-            ALUOp = 2'b10; // R-type operation (ALU operation)
-            RegWrite = 1; // Enable register write
-            ALUSrc = 0; // Use register values for ALU operation
-            MemWrite = 0; // No memory write for R-type
-            ResultSrc = 0; // Result comes from ALU
-            Branch = 0; // No branch for R-type
-        end
-        
-        Itype: begin
-            ALUOp = 2'b10; // I-type operation (ALU operation)
-            RegWrite = 1; // Enable register write
-            ALUSrc = 1; // Use immediate value for ALU operation
-            MemWrite = 0; // No memory write for I-type
-            ResultSrc = 0; // Result comes from ALU
-            ImmSrc = 2'b00; // Immediate source for I-type
-            Branch = 0; // No branch for I-type
-        end
-        
-        branch: begin
-            ALUOp = 2'b01; // Branch operation (ALU operation)
-            Branch = 1; // Enable branch control
-            MemWrite = 0; // No memory write for branch
-            ALUSrc = 0; // Use register values for ALU operation
-            ImmSrc = 2'b10; // Immediate source for branch
-            RegWrite = 0; // No register write for branch
+// Instantiate Main Decoder
+Main_Decoder main_decoder_inst (
+    .opcode     (opcode),
+    .ALUOp      (ALUOp_internal),
+    .Branch     (Branch),
+    .ResultSrc  (ResultSrc),
+    .MemWrite   (MemWrite),
+    .ALUSrc     (ALUSrc),
+    .ImmSrc     (ImmSrc),
+    .RegWrite   (RegWrite)
+);
 
-        end
-        
-        default: begin
-            ALUOp = 2'b00; 
-            Branch = 0;
-            ResultSrc = 0; 
-            MemWrite = 0;
-            ALUSrc = 0; 
-            ImmSrc = 2'b00;
-            RegWrite = 0;   
-        end
-    endcase 
-    end
-    endmodule
+// Instantiate ALU Decoder
+ALU_Decoder alu_decoder_inst (
+    .opcode     (opcode),
+    .func7      (func7),
+    .ALUOP      (ALUOp_internal),
+    .func3      (func3),
+    .ALUControl (ALUControl)
+);
 
+// Instantiate Branch Logic
+Branch_Logic branch_logic_inst (
+    .func3      (func3),
+    .Zero_Flag  (Zero_Flag),
+    .Sign_Flag  (Sign_Flag),
+    .Branch     (Branch),
+    .PCSrc      (PCSrc)
+);
 
-        
+endmodule
