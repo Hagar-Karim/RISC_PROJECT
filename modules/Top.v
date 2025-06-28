@@ -9,8 +9,7 @@ wire [31:0] PC, SrcA, SrcB, ALUResult, ImmExt, Inst, WriteData, ReadData, Result
 wire [2:0] AluControl;
 wire [1:0] ImmSrc;
 wire zeroFlag, signFlag, PCSrc, ALUSrc, RegWrite, ResultSrc, MemWrite, load;
-
-// Instantiate the Program Counter
+ 
 Program_Counter top_PC
 (
     .clk(clk),
@@ -39,7 +38,7 @@ Control_Unit top_control_unit
     .ALUControl(AluControl),
     .RegWrite(RegWrite),
     .MemWrite(MemWrite),
-    .Branch(PCSrc),
+    .PCSrc(PCSrc),
     .ALUSrc(ALUSrc),
     .ResultSrc(ResultSrc),
     .ImmSrc(ImmSrc)
@@ -74,9 +73,7 @@ alu_module top_alu_module
 
 );
 
-
 // Instantiate the Data Memory
-
 data_mem_module data_mem_top
 (
     .clk(clk),
@@ -87,12 +84,11 @@ data_mem_module data_mem_top
 
 );
 
-
 // Instantiate the sign extension 
 Sign_Extend top_sign_extend
 (
     .ImmSrc(ImmSrc),
-    .Inst(Inst[31:7]),
+    .Inst(Inst),
     .ImmExt(ImmExt)
 );
 

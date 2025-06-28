@@ -6,13 +6,13 @@ module data_mem_module #(parameter ADDR_WIDTH = 32 , DATA_WIDTH = 32 , ADDR_DEPT
  output [DATA_WIDTH-1:0] RD
 );
 
-reg [DATA_WIDTH-1:0] data_mem [0:ADDR_DEPTH-1];
+reg [DATA_WIDTH-1:0] data_mem [ADDR_DEPTH-1:0];
 
 always @ (posedge clk)
 begin 
   if (WE)
-    data_mem[A[7:2]] <= WD; 
+    data_mem[A[31:2]] <= WD; 
 end
 
-assign RD = data_mem[A[7:2]]; 
+assign RD = data_mem[A[31:2]]; 
 endmodule

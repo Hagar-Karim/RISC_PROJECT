@@ -1,30 +1,30 @@
-module Main_Decoder
-(
-    input [6:0] opcode, // Opcode input
-    output reg [1:0] ALUOp, // ALU operation code
-    output reg Branch, // Branch control signal
-    output reg ResultSrc, // Result source select
-    output reg MemWrite, // Memory write enable
-    output reg ALUSrc, // ALU source select
-    output reg [1:0] ImmSrc, // Immediate source select
-    output reg RegWrite // Register write enable
+module Main_Decoder (
+    input [6:0] opcode,        // Opcode input
+    output reg [1:0] ALUOp,    // ALU operation code
+    output reg Branch,         // Branch control signal
+    output reg ResultSrc,      // Result source select
+    output reg MemWrite,       // Memory write enable
+    output reg ALUSrc,         // ALU source select
+    output reg [1:0] ImmSrc,   // Immediate source select
+    output reg RegWrite        // Register write enable
 );
-localparam loadWord = 7'b0000011; // Load Word instruction
-localparam storeWord = 7'b0100011; // Store Word instruction
-localparam Rtype = 7'b0110011; // R-type instruction
-localparam Itype = 7'b0010011; // I-type instruction
-localparam branch = 7'b1100011; // Branch instruction
+
+// Instruction opcodes from RISC-V spec (matches your PDF page 10)
+localparam loadWord     = 7'b0000011,
+           storeWord   = 7'b0100011,
+           Rtype    = 7'b0110011,
+           Itype   = 7'b0010011,
+           branch   = 7'b1100011;
 
 always @(*) begin
-    // Default values
-    ALUOp = 2'b00; 
-    Branch = 0;
-    ResultSrc = 0; 
-    MemWrite = 0;
-    ALUSrc = 0; 
-    ImmSrc = 2'b00;
-    RegWrite = 0;   
-
+    // Default control values (matches your PDF)
+    ALUOp    = 2'b00;
+    Branch   = 1'b0;
+    ResultSrc= 1'b0;
+    MemWrite = 1'b0;
+    ALUSrc   = 1'b0;
+    ImmSrc   = 2'b00;
+    RegWrite = 1'b0;
     case (opcode)
         loadWord: begin
             ALUOp = 2'b00; 
@@ -83,62 +83,60 @@ always @(*) begin
             ImmSrc = 2'b00;
             RegWrite = 0;   
         end
-    endcase 
-    end
-    endmodule
+    endcase
+end
+endmodule
 
-module ALU_Decoder 
-(
-    input wire [6:0] opcode ,
+module ALU_Decoder (
+    input wire [6:0] opcode,
     input wire func7,
     input wire [1:0] ALUOP,
     input wire [2:0] func3,
     output reg [2:0] ALUControl
 );
 
-wire [1:0] op_func7 = {opcode[5] , func7}; // Concatenate opcode[5] and func7
+// ALU operations from your PDF page 4
+localparam ADD  = 3'b000,
+           SLL  = 3'b001,
+           SUB  = 3'b010,
+           XOR  = 3'b100,
+           SRL  = 3'b101,
+           OR   = 3'b110,
+           AND  = 3'b111;
 
-always@ (*) begin
+always @(*) begin
     case (ALUOP)
-        2'b00 : ALUControl = 3'b000; //lw, sw
-        2'b01 : begin
-            if (func3 == 3'b000 || func3 == 3'b001 || func3 == 3'b100) // beq, bnq, blt
-                ALUControl = 3'b010;
-            else ALUControl = 3'b000;
-        end
-        2'b10: begin
+        2'b00: ALUControl = ADD; 
+        2'b01: ALUControl = SUB; 
+        2'b10: begin  // R-type/I-type
             case (func3)
-                3'b000 : begin
-                    if (op_func7 == 2'b00 || op_func7 == 2'b01 || op_func7 == 2'b10)
-                        ALUControl = 3'b000;
-                    else 
-                        ALUControl = 3'b010;
-                end 
-                3'b001 : ALUControl = 3'b001;
-                3'b100 : ALUControl = 3'b100;
-                3'b101 : ALUControl = 3'b101;
-                3'b110 : ALUControl = 3'b110;
-                3'b111 : ALUControl = 3'b111;
-                default : ALUControl = 3'b000;
+                3'b000: ALUControl = (opcode[5] & func7) ? SUB : ADD;
+                3'b001: ALUControl = SLL;
+                3'b100: ALUControl = XOR;
+                3'b101: ALUControl = SRL;
+                3'b110: ALUControl = OR;
+                3'b111: ALUControl = AND;
+                default: ALUControl = ADD;
             endcase
         end
-        default : ALUControl = 3'b000;
+        default: ALUControl = ADD;
     endcase
-end //always end
+end
 endmodule
 
-module Branch_Logic
-(  
+module Branch_Logic (
     input [2:0] func3,
-    input Zero_Flag, Sign_Flag, Branch, 
+    input Zero_Flag,
+    input Sign_Flag,
+    input Branch,
     output reg PCSrc
 );
 
 localparam beq = 3'b000,
            bne = 3'b001,
-           blt = 3'b010;
+           blt = 3'b100;
 
-always@ (*) begin
+always @(*) begin
     case (func3)
         beq : PCSrc = Branch & Zero_Flag ;
         bne : PCSrc = Branch & ~Zero_Flag;
@@ -147,4 +145,3 @@ always@ (*) begin
     endcase
 end
 endmodule
-        

@@ -17,7 +17,7 @@ assign pc_branch = PC + ImmExt; // Calculate the branch address
 assign pc = (PCSrc) ? pc_branch : pc_next_inst; // Select between next instruction or branch address
 
     // Update the program counter on the rising edge of the clock
-    always @(posedge clk or posedge areset) begin
+    always @(posedge clk or negedge areset) begin
         if (!areset) begin
             PC <= 32'b0; // Reset the program counter to zero
         end else if (load) begin
